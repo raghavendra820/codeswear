@@ -32,36 +32,36 @@ const Navbar = ({ cart, addToCart, removeFromCart, subTotal, clearCart }) => {
         </div>
         <div className="nav">
           <ul className="flex space-x-4 items-center font-bold md:text-md">
-            <Link href={"/tshirts"}>
+            <Link href={"/tshirts"} className="hover:text-pink-700">
               <li>Tshirts</li>
             </Link>
-            <Link href={"/hoodies"}>
+            <Link href={"/hoodies"} className="hover:text-pink-700">
               <li>Hoodies</li>
             </Link>
-            <Link href={"/stickers"}>
+            <Link href={"/stickers"} className="hover:text-pink-700">
               <li>Stickers</li>
             </Link>
-            <Link href={"/mugs"}>
+            <Link href={"/mugs"} className="hover:text-pink-700">
               <li>Mugs</li>
             </Link>
           </ul>
         </div>
         <div className="flex">
+          <div className="absolute right-0 mx-5 top-8 md:top-4 text-xl md:text-3xl cursor-pointer">
+            <Link href={"/login"}>
+              <RiAccountCircleFill className="mx-6 md:mx-10" />
+            </Link>
+          </div>
           <div
             className=" absolute right-0 mx-5 top-8 md:top-4 text-xl md:text-3xl cursor-pointer"
             onClick={toggleCart}
           >
             <FaShoppingCart />
           </div>
-          <div className=" absolute right-0 mx-5 top-8 md:top-4 text-xl md:text-3xl cursor-pointer">
-            <Link href={"/login"}>
-              <RiAccountCircleFill className="mx-6 md:mx-10" />
-            </Link>
-          </div>
         </div>
         <div
           ref={ref}
-          className={`sideCart absolute right-0 top-0 bg-pink-200 px-8 py-10 ${
+          className={`sideCart absolute right-0 top-0 bg-pink-200 px-8 py-10  ${
             Object.keys(cart).length === 0
               ? "translate-x-full"
               : "translate-x-0"
@@ -86,7 +86,7 @@ const Navbar = ({ cart, addToCart, removeFromCart, subTotal, clearCart }) => {
               return (
                 <li key={k}>
                   <div className="item flex my-3">
-                    <div className="w-2/3 font-semibold">{cart[k].name}</div>
+                    <div className="w-2/3 font-semibold">{cart[k].name}({cart[k].size}/{cart[k].variant})</div>
                     <div className="w-1/3 flex justify-center items-center font-semibold">
                       <IoAddCircle
                         className="text-xl text-pink-600 cursor-pointer"

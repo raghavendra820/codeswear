@@ -113,7 +113,7 @@ function checkout({ cart, addToCart, removeFromCart, subTotal, clearCart }) {
             return (
               <li key={k}>
                 <div className="item flex m-5">
-                  <div className=" font-semibold">{cart[k].name}</div>
+                  <div className=" font-semibold">{cart[k].name}({cart[k].size}/{cart[k].variant})</div>
                   <div className=" ml-20 flex justify-center items-center font-semibold">
                     <IoAddCircle
                       className="w-1/3 text-xl text-pink-600 cursor-pointer"
@@ -149,8 +149,8 @@ function checkout({ cart, addToCart, removeFromCart, subTotal, clearCart }) {
         <span className="subtotal font-bold">Subtotal:₹{subTotal}</span>
       </div>
       <button className="flex my-10 text-white bg-pink-500 border-0 py-2 px-2  focus:outline-none hover:bg-pink-600 rounded text-lg">
-        <LiaGratipay className="m-1 mr-2" />
         Pay ₹{subTotal}
+        <LiaGratipay className="m-1 " />
       </button>
     </div>
   );
