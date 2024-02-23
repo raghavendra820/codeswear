@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { Toaster, toast } from "react-hot-toast";
 import { useRouter } from "next/router";
@@ -12,6 +12,11 @@ const Login = () => {
     let obj = { [name]: value };
     setFormData({ ...formData, ...obj });
   };
+  useEffect(() => {
+    if(localStorage.getItem("token")){
+      router.push("/")
+    }
+}, [])
 
   const  handleSubmit = async (e) => {
     e.preventDefault();
@@ -30,6 +35,7 @@ const Login = () => {
     const result = await response.json();
     if(result.success){
       toast.success("Login Successful!");
+      localStorage.setItem("token", result.token);
       setTimeout(()=>{
         router.push("/")
       },2000)

@@ -2,13 +2,35 @@ import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 import "@/styles/globals.css";
 import { Router, useRouter } from "next/router";
-import { useState,useEffect } from "react";
+import { useState, useEffect } from "react";
+import LoadingBar from 'react-top-loading-bar'
 
 export default function App({ Component, pageProps }) {
   const [cart, setCart] = useState({});
   const [subTotal, setSubTotal] = useState(0);
-  const router=useRouter();
+  const [user, setUser] = useState({ value: null });
+  const [key, setKey] = useState(0);
+  const [progress, setProgress] = useState(0)
+
+
+
+
+
+  const router = useRouter();
   useEffect(() => {
+    router.events.on('routeChangeStart', ()=>{
+      setProgress(50);
+    })//On to subscribe to a event
+
+    router.events.on('routeChangeComplete', ()=>{
+      setProgress(100);
+    })
+
+    const token=localStorage.getItem("token")
+    if(token){
+      setUser({value:token})
+      setKey(Math.random())
+    }
     try {
       if (localStorage.getItem("cart")) {
         setCart(JSON.parse(localStorage.getItem("cart")));
@@ -18,14 +40,20 @@ export default function App({ Component, pageProps }) {
       console.log(error);
       localStorage.clear();
     }
-  }, []);
+  }, [router.query]);
 
-  const buyNow=(itemCode, qty, price, name, size, variant)=>{
-    let newCart={itemCode:{qty:1,price,name, size, variant}};
+  const logout= ()=>{
+    localStorage.removeItem("token")
+    // setKey(Math.random())
+     setUser({ value: null })
+     router.push("/")
+  }
+  const buyNow = (itemCode, qty, price, name, size, variant) => {
+    let newCart = { itemCode: { qty: 1, price, name, size, variant } };
     setCart(newCart);
     saveCart(newCart);
     router.push("/checkout");
-  }
+  };
 
   const saveCart = (myCart) => {
     localStorage.setItem("cart", JSON.stringify(myCart));
@@ -67,6 +95,12 @@ export default function App({ Component, pageProps }) {
 
   return (
     <>
+     <LoadingBar
+        color='#ff2d55'
+        progress={progress}
+        onLoaderFinished={() => setProgress(0)}
+        waitingTime={300}
+      />
       <Navbar
         cart={cart}
         clearCart={clearCart}
@@ -75,6 +109,8 @@ export default function App({ Component, pageProps }) {
         saveCart={saveCart}
         subTotal={subTotal}
         buyNow={buyNow}
+        user={user}
+        logout={logout}
       />
       <Component
         {...pageProps}

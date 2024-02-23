@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { Toaster, toast } from "react-hot-toast";
 const Signup = () => {
@@ -7,10 +7,17 @@ const Signup = () => {
     name: "",
     password: "",
   });
+  const router=useRouter();
   const handleChange = (value, name) => {
     let obj = { [name]: value };
     setFormData({ ...formData, ...obj });
   };
+
+  useEffect(() => {
+    if(localStorage.getItem("token")){
+      router.push("/")
+    }
+}, [])
 
   const  handleSubmit = async (e) => {
     e.preventDefault();

@@ -1,5 +1,5 @@
 import Image from "next/image";
-import React from "react";
+import { useState,useEffect } from "react";
 import Link from "next/link";
 import { FaShoppingCart, FaShoppingBag } from "react-icons/fa";
 import {
@@ -9,9 +9,22 @@ import {
 } from "react-icons/io5";
 import { RiAccountCircleFill } from "react-icons/ri";
 import { useRef } from "react";
+import { useRouter } from "next/router";
 
-const Navbar = ({ cart, addToCart, removeFromCart, subTotal, clearCart }) => {
+const Navbar = ({
+  cart,
+  addToCart,
+  removeFromCart,
+  subTotal,
+  clearCart,
+  user,
+  key,
+  logout,
+}) => {
+  const [dropdown, setDropdown] = useState(false);
   const ref = useRef(null);
+  const router=useRouter();
+
   const toggleCart = () => {
     if (ref.current.classList.contains("translate-x-full")) {
       ref.current.classList.remove("translate-x-full");
@@ -25,7 +38,7 @@ const Navbar = ({ cart, addToCart, removeFromCart, subTotal, clearCart }) => {
   return (
     <>
       <div className="flex flex-col md:flex-row md:justify-start justify-center items-center py-2 shadow-md z-30 sticky top-0 bg-white">
-        <div className="logo mx-5">
+        <div className="logo md:mx-5 mr-auto">
           <Link href={"/"}>
             <Image src={"/logo.webp"} width={200} height={40} alt="jjh"></Image>
           </Link>
@@ -47,13 +60,52 @@ const Navbar = ({ cart, addToCart, removeFromCart, subTotal, clearCart }) => {
           </ul>
         </div>
         <div className="flex">
-          <div className="absolute right-0 mx-5 top-8 md:top-4 text-xl md:text-3xl cursor-pointer">
-            <Link href={"/login"}>
-              <RiAccountCircleFill className="mx-6 md:mx-10" />
-            </Link>
+          <div className="absolute right-0 mx-5 top-6 md:top-2 text-xl md:text-3xl cursor-pointer">
+            <div
+              onMouseLeave={() => {
+                setDropdown(false);
+              }}
+              onMouseOver={() => {
+                setDropdown(true);
+              }}
+            >
+              {dropdown && (
+                <div
+                  className="absolute text-sm top-9 bg-pink-50  p-4 rounded-md w-32"
+                  onMouseLeave={() => {
+                    setDropdown(false);
+                  }}
+                  onMouseOver={() => {
+                    setDropdown(true);
+                  }}
+                >
+                  <ul>
+                    <Link href={"/account"}>
+                      <li className="py-1 hover:text-pink-700 font-bold text-l">My account</li>
+                    </Link>
+                    <Link href={"/orders"}>
+                      <li className="py-1 hover:text-pink-700 font-bold">Orders</li>
+                    </Link>
+                    <li className="py-1 hover:text-pink-700 font-bold" onClick={logout}>
+                      Logout
+                    </li>
+                  </ul>
+                </div>
+              )}
+              {user.value && (
+                <RiAccountCircleFill className="mx-6 md:mx-10 md:mt-2" />
+              )}
+            </div>
+            {!user.value && (
+              <Link href={"/login"}>
+                <button className="px-2 py-1 text-sm bg-pink-500 rounded-md text-white md:mr-10 mr-7 mb-9">
+                  Login
+                </button>
+              </Link>
+            )}
           </div>
           <div
-            className=" absolute right-0 mx-5 top-8 md:top-4 text-xl md:text-3xl cursor-pointer"
+            className=" absolute right-0 mx-5 top-6 md:top-4 text-xl md:text-3xl cursor-pointer item-center"
             onClick={toggleCart}
           >
             <FaShoppingCart />
@@ -86,7 +138,9 @@ const Navbar = ({ cart, addToCart, removeFromCart, subTotal, clearCart }) => {
               return (
                 <li key={k}>
                   <div className="item flex my-3">
-                    <div className="w-2/3 font-semibold">{cart[k].name}({cart[k].size}/{cart[k].variant})</div>
+                    <div className="w-2/3 font-semibold">
+                      {cart[k].name}({cart[k].size}/{cart[k].variant})
+                    </div>
                     <div className="w-1/3 flex justify-center items-center font-semibold">
                       <IoAddCircle
                         className="text-xl text-pink-600 cursor-pointer"

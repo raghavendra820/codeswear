@@ -1,10 +1,11 @@
 import User from "@/models/User";
 import connectDb from "@/middleware/mongoose";
+var CryptoJS = require("crypto-js");
 
 async function handler  (req, res) {
   if (req.method === "POST") {
-
-      let u = new User(req.body);
+    const {name,email,password}=req.body;
+      let u = new User({name:name,email:email,password:CryptoJS.AES.encrypt(password, 'secret key 123').toString()});
       await u.save();
     res.status(200).json({ success: "Data Added Successfully" });
   } else {
