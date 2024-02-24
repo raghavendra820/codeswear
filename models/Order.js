@@ -3,13 +3,13 @@ const { Schema } = mongoose;
 
 const OrderSchema = new Schema(
   {
-    userId: { type: String, required: true }, // String is shorthand for {type: String}
-    products: [
-      { productId: { type: String }, quantity: { type: Number, default: 1 } },
-    ],
+    email: { type: String, required: true },
+    orderId:{ type: String, required: true },
+    paymentInfo:{ type: String, default:'' },
+    products: {type:Object, required:true},
     address: { type: String, required: true },
     amount: { type: String, required: true },
-    status: { type: String, required: true, default: "Pending" },
+    status: { type: String, required: true, default: "Initiated" },
   },
   { timestamps: true }
 );

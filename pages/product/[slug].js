@@ -20,7 +20,7 @@ const Post = ({
 
   const { slug } = router.query;
   useEffect(() => {
-    fetch("http://localhost:3000/api/pincode")
+    fetch(`${process.env.NEXT_PUBLIC_HOST_URL}/api/pincode`)
       .then((response) => response.json())
       .then((data) => setPinCodes(data))
       .catch((error) => console.error(error));
@@ -38,7 +38,7 @@ const Post = ({
   const refreshVariant = (newSize, newColor) => {
     console.log(variants[newColor]);
     console.log(newColor);
-    const url = `http://localhost:3000/product/${variants[newColor][newSize]["slug"]}`;
+    const url = `${process.env.NEXT_PUBLIC_HOST_URL}/product/${variants[newColor][newSize]["slug"]}`;
     window.location = url;
   };
 

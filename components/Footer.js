@@ -9,7 +9,7 @@ const Footer = () => {
           <div className="w-64 flex-shrink-0 md:mx-0 mx-auto text-center md:text-left">
             <Link href={"/"}>
             <div className="flex title-font font-medium items-center md:justify-start justify-center text-gray-900">
-              <img src="./logo.webp" alt="" srcSet="" className="" />
+              <img src="./logo.webp" alt="" srcSet="" className="h-auto w-auto" />
             </div>
             </Link>
             <p className="mt-2 text-sm text-gray-500 px-4">
