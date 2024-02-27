@@ -1,10 +1,20 @@
-import React from "react";
+import React, {useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import Order from "@/models/Order";
 import mongoose from "mongoose";
 
-const MyOrder = ({ order }) => {
+const MyOrder = ({ order, clearCart }) => {
+  const [date, setDate] = useState("")
   let products = order.products;
+  const router=useRouter();
+  useEffect(() => {
+    const d=new Date(order.createdAt);
+    setDate(d);
+    if(router.query.clearCart==1){
+      clearCart()
+    }
+  }, [])
+
   return (
     <section className="text-gray-600 body-font overflow-hidden">
       <div className="container px-5 py-24 mx-auto">
@@ -19,6 +29,9 @@ const MyOrder = ({ order }) => {
             <p className="leading-relaxed mb-4">
               Yay!Your order has been successfully placed.<br></br> Your payment status is{" "}
               <b>{order.status}</b>
+            </p>
+            <p className="leading-relaxed mb-4">
+              Order placed on: {date && date.toLocaleString("hi-IN")}
             </p>
             <div className="flex mb-4">
               <a className="flex-grow text-center py-2 text-lg px-1">

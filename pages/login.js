@@ -13,7 +13,7 @@ const Login = () => {
     setFormData({ ...formData, ...obj });
   };
   useEffect(() => {
-    if(localStorage.getItem("token")){
+    if(localStorage.getItem("myuser")){
       router.push("/")
     }
 }, [])
@@ -35,7 +35,7 @@ const Login = () => {
     const result = await response.json();
     if(result.success){
       toast.success("Login Successful!");
-      localStorage.setItem("token", result.token);
+      localStorage.setItem("myuser", JSON.stringify({token:result.token,email:result.email}));
       setTimeout(()=>{
         router.push("/")
       },2000)

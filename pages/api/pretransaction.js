@@ -2,6 +2,7 @@ const https = require("https");
 const PaytmChecksum = require("paytmchecksum");
 import Order from "@/models/Order";
 import connectDb from "@/middleware/mongoose";
+import Product from "@/models/Product";
 
 /*
  * import checksum generation utility
@@ -9,8 +10,43 @@ import connectDb from "@/middleware/mongoose";
  */
 
 async function handler(req, res) {
+  if(req.body.subTotal==0){
+    res.status(400).json({ success:false,error: "Please build your cart and try again!!" });
+    return;
+  }
+  let product, sumTotal = 0;
+  let cart = req.body.cart;
+  for (let item in cart) {
+    sumTotal += cart[item].price * cart[item].qty;
+    product = await Product.findOne({ slug: item  });
+    //Check if the cart is tampered with
+    if (product.price != cart[item].price) {
+      console.log(product.price)
+      console.log(cart[item].price)
+      res.status(400).json({ success:false,error: "The price of some items in your cart has changed.Please try again!!" });
+      return;
+    }
+    //To check if items are out of stock
+    if(product.availableQty < cart[item].qty){
+      res.status(400).json({ success:false,error: "Some of the items in your cart are out of stock!" });
+      return;
+    }
+  }
+  if(req.body.phone.length != 10 && Number.isInteger(Number(req.body.phone))){
+    res.status(400).json({ success:false,error: "Please enter your 10 digit valid number" });
+    return;
+  }
+  if(req.body.pincode.length != 6 && Number.isInteger(Number(req.body.phone))){
+    res.status(400).json({ success:false,error: "Please enter your 6 digit valid number" });
+    return;
+  }
+
+  if (sumTotal != req.body.subTotal) {
+    res.status(400).json({ success:false,error: "The price of some items in your cart has changed.Please try again!!" });
+    return;
+  }
+
   const order = new Order({
-    email: req.body.email,
     email: req.body.email,
     orderId: req.body.oid,
     address: req.body.address,
@@ -72,7 +108,9 @@ async function handler(req, res) {
 
           post_res.on("end", function () {
             console.log("Response: ", response);
-            resolve(JSON.parse(response).body);
+            let ress=JSON.parse(response).body
+            ress.success=true;
+            resolve(res);
           });
         });
         post_req.write(post_data);

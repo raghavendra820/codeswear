@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { Toaster, toast } from "react-hot-toast";
 import Product from "@/models/Product";
 import mongoose from "mongoose";
+import Error from "next/error";
 const Post = ({
   cart,
   addToCart,
@@ -12,22 +13,36 @@ const Post = ({
   product,
   variants,
   buyNow,
+  error
 }) => {
   const router = useRouter();
   const [pin, setPin] = useState("");
   const [pinCodes, setPinCodes] = useState([]);
   const [available, setAvailable] = useState();
+  console.log(error)
 
   const { slug } = router.query;
   useEffect(() => {
+    console.log(product)
+    // setColor(product.color);
+    // setSize(product.size);
     fetch(`${process.env.NEXT_PUBLIC_HOST_URL}/api/pincode`)
       .then((response) => response.json())
       .then((data) => setPinCodes(data))
       .catch((error) => console.error(error));
   }, []);
 
+  useEffect(() => {
+    if(error!=404){
+      setColor(product.color);
+      setSize(product.size);
+
+    }
+  }, [router.query])
+
+
   const checkService = () => {
-    if (pinCodes.includes(pin)) {
+    if (Object.keys(pinCodes).includes(pin)) {
       toast.success("Pincode is serviceable!!");
       setAvailable(true);
     } else {
@@ -36,14 +51,17 @@ const Post = ({
     }
   };
   const refreshVariant = (newSize, newColor) => {
-    console.log(variants[newColor]);
-    console.log(newColor);
+    // console.log(variants[newColor]);
+    // console.log(newColor);
     const url = `${process.env.NEXT_PUBLIC_HOST_URL}/product/${variants[newColor][newSize]["slug"]}`;
-    window.location = url;
+    router.push(url);
   };
 
-  const [color, setColor] = useState(product.color);
-  const [size, setSize] = useState(product.size);
+  const [color, setColor] = useState();
+  const [size, setSize] = useState();
+  if (error==404) {
+    return <Error statusCode={404} />
+  }
   return (
     <div>
       <section className="text-gray-600 body-font overflow-hidden">
@@ -226,19 +244,19 @@ const Post = ({
                       className="rounded border appearance-none border-gray-300 py-2 focus:outline-none focus:ring-2 focus:ring-pink-200 focus:border-pink-500 text-base pl-3 pr-10"
                       onChange={(e) => refreshVariant(e.target.value, color)}
                     >
-                      {Object.keys(variants[color]).includes("S") && (
+                      {color && Object.keys(variants[color]).includes("S") && (
                         <option value={"S"}>S</option>
                       )}
-                      {Object.keys(variants[color]).includes("M") && (
+                      {color && Object.keys(variants[color]).includes("M") && (
                         <option value={"M"}>M</option>
                       )}
-                      {Object.keys(variants[color]).includes("L") && (
+                      {color && Object.keys(variants[color]).includes("L") && (
                         <option value={"L"}>L</option>
                       )}
-                      {Object.keys(variants[color]).includes("XL") && (
+                      {color && Object.keys(variants[color]).includes("XL") && (
                         <option value={"XL"}>XL</option>
                       )}
-                      {Object.keys(variants[color]).includes("XXL") && (
+                      {color && Object.keys(variants[color]).includes("XXL") && (
                         <option value={"XXL"}>XXL</option>
                       )}
                     </select>
@@ -262,8 +280,12 @@ const Post = ({
                 <span className="title-font font-medium text-2xl text-gray-900">
                   ₹{product.price}
                 </span>
+                {product.availableQty<=0&&<span className="title-font font-medium text-2xl text-gray-900">
+                  Out of stock :)
+                </span>}
                 <button
-                  className="flex ml-3 text-white bg-pink-500 border-0 py-2 px-6 focus:outline-none hover:bg-pink-600 rounded"
+                  className="flex ml-3 text-white bg-pink-500 border-0 py-2 px-6 focus:outline-none hover:bg-pink-600 rounded disabled:bg-pink-300"
+                  disabled={product.availableQty<=0}
                   onClick={() =>
                     addToCart(
                       slug,
@@ -278,7 +300,8 @@ const Post = ({
                   Add to Cart
                 </button>
                 <button
-                  className="flex ml-3 text-white bg-pink-500 border-0 py-2 px-6 focus:outline-none hover:bg-pink-600 rounded"
+                  className="flex ml-3 text-white bg-pink-500 border-0 py-2 px-6 focus:outline-none hover:bg-pink-600 rounded disabled:bg-pink-300"
+                  disabled={product.availableQty<=0}
                   onClick={() =>
                     buyNow(
                       slug,
@@ -343,6 +366,14 @@ export async function getServerSideProps(context) {
     await mongoose.connect(process.env.MONGO_URI);
   }
   let product = await Product.findOne({ slug: context.query.slug });
+  if(product==null){
+
+    return {
+      props: {
+        error:404
+      },
+    };
+  }
   let colorSizeSlug = {}; //{red:{xl:{slug:'wear-the-code'}}}
   let variants = await Product.find({ title: product.title, category: product.category });
   for (let item of variants) {
@@ -357,6 +388,7 @@ export async function getServerSideProps(context) {
     props: {
       product: JSON.parse(JSON.stringify(product)),
       variants: JSON.parse(JSON.stringify(colorSizeSlug)),
+      error:200
     },
   };
 }

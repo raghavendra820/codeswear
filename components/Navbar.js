@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { useState,useEffect } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { FaShoppingCart, FaShoppingBag } from "react-icons/fa";
 import {
@@ -22,22 +22,56 @@ const Navbar = ({
   logout,
 }) => {
   const [dropdown, setDropdown] = useState(false);
+  const [sideBar, setSideBar] = useState(false);
   const ref = useRef(null);
-  const router=useRouter();
+  const router = useRouter();
+
+  useEffect(() => {
+    Object.keys(cart).length === 0 && setSideBar(true)
+    let exempted=["/checkout","/orders","/order","myaccount"]
+    if(exempted.includes(router.pathname)){
+      setSideBar(false)
+    }
+  }, []);
 
   const toggleCart = () => {
-    if (ref.current.classList.contains("translate-x-full")) {
-      ref.current.classList.remove("translate-x-full");
-      ref.current.classList.add("translate-x-0");
-    } else if (ref.current.classList.contains("translate-x-0")) {
-      ref.current.classList.remove("translate-x-0");
-      ref.current.classList.add("translate-x-full");
-    }
+    setSideBar(!sideBar);
   };
 
   return (
     <>
-      <div className="flex flex-col md:flex-row md:justify-start justify-center items-center py-2 shadow-md z-30 sticky top-0 bg-white">
+    {dropdown && (
+                <span
+                  className="absolute text-sm top-10 bg-pink-50  p-4 rounded-md w-32 z-50 right-8"
+                  onMouseLeave={() => {
+                    setDropdown(false);
+                  }}
+                  onMouseOver={() => {
+                    setDropdown(true);
+                  }}
+                >
+                  <ul>
+                    <Link href={"/account"}>
+                      <li className="py-1 hover:text-pink-700 font-bold text-l">
+                        My account
+                      </li>
+                    </Link>
+                    <Link href={"/orders"}>
+                      <li className="py-1 hover:text-pink-700 font-bold">
+                        Orders
+                      </li>
+                    </Link>
+                    <li
+                      className="py-1 hover:text-pink-700 font-bold  cursor-pointer"
+                      onClick={logout}
+                    >
+                      Logout
+                    </li>
+                  </ul>
+                </span>
+              )}
+      <div className={`flex flex-col md:flex-row md:justify-start justify-center items-center py-2 shadow-md z-30 sticky top-0 bg-white
+      ${!sideBar&& "overflow-hidden"}`}>
         <div className="logo md:mx-5 mr-auto">
           <Link href={"/"}>
             <Image src={"/logo.webp"} width={200} height={40} alt="jjh"></Image>
@@ -62,38 +96,16 @@ const Navbar = ({
         <div className="flex">
           <div className="absolute right-0 mx-5 top-6 md:top-2 text-xl md:text-3xl cursor-pointer">
             <div
-              onMouseLeave={() => {
+               onMouseLeave={() => {
                 setDropdown(false);
               }}
               onMouseOver={() => {
                 setDropdown(true);
               }}
             >
-              {dropdown && (
-                <div
-                  className="absolute text-sm top-9 bg-pink-50  p-4 rounded-md w-32"
-                  onMouseLeave={() => {
-                    setDropdown(false);
-                  }}
-                  onMouseOver={() => {
-                    setDropdown(true);
-                  }}
-                >
-                  <ul>
-                    <Link href={"/account"}>
-                      <li className="py-1 hover:text-pink-700 font-bold text-l">My account</li>
-                    </Link>
-                    <Link href={"/orders"}>
-                      <li className="py-1 hover:text-pink-700 font-bold">Orders</li>
-                    </Link>
-                    <li className="py-1 hover:text-pink-700 font-bold" onClick={logout}>
-                      Logout
-                    </li>
-                  </ul>
-                </div>
-              )}
+
               {user.value && (
-                <RiAccountCircleFill className="mx-6 md:mx-10 md:mt-2" />
+                <RiAccountCircleFill className="mx-7 md:mx-10 md:mt-2 " />
               )}
             </div>
             {!user.value && (
@@ -113,11 +125,11 @@ const Navbar = ({
         </div>
         <div
           ref={ref}
-          className={`sideCart absolute right-0 top-0 bg-pink-200 px-8 py-10  ${
-            Object.keys(cart).length === 0
-              ? "translate-x-full"
-              : "translate-x-0"
-          } transition-transform w-72 h-[100vh]`}
+          className={`sideCart absolute  top-0 bg-pink-200 px-8 py-10  ${
+            sideBar
+              ? "right-0"
+              : "-right-96"
+          } transition-all w-72 h-[100vh]`}
         >
           <h2 className="font-bold text-xl text-center">
             This is my Shopping Cart
@@ -175,14 +187,18 @@ const Navbar = ({
           </ol>
           <div className="flex">
             <Link href={"/checkout"}>
-              <button className="flex mx-auto my-10 text-white bg-pink-500 border-0 py-2 px-2  focus:outline-none hover:bg-pink-600 rounded text-lg">
+              <button
+                className="flex mx-auto my-10 text-white bg-pink-500 border-0 py-2 px-2  focus:outline-none hover:bg-pink-600 rounded text-lg disabled:bg-pink-300"
+                disabled={Object.keys(cart).length == 0}
+              >
                 <FaShoppingBag className="m-1 mr-2" />
                 Checkout
               </button>
             </Link>
             <button
-              className="flex mx-auto my-10 text-white bg-pink-500 border-0 py-2 px-2  focus:outline-none hover:bg-pink-600 rounded text-lg"
+              className="flex mx-auto my-10 text-white bg-pink-500 border-0 py-2 px-2  focus:outline-none hover:bg-pink-600 rounded text-lg disabled:bg-pink-300"
               onClick={clearCart}
+              disabled={Object.keys(cart).length == 0}
             >
               Clear Cart
             </button>

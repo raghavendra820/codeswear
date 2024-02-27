@@ -26,9 +26,9 @@ export default function App({ Component, pageProps }) {
       setProgress(100);
     })
 
-    const token=localStorage.getItem("token")
-    if(token){
-      setUser({value:token})
+    const myuser=JSON.parse(localStorage.getItem("myuser"))
+    if(myuser){
+      setUser({value:myuser.token, email: myuser.email})
       setKey(Math.random())
     }
     try {
@@ -43,10 +43,11 @@ export default function App({ Component, pageProps }) {
   }, [router.query]);
 
   const logout= ()=>{
-    localStorage.removeItem("token")
+    localStorage.removeItem("myuser")
     // setKey(Math.random())
      setUser({ value: null })
      router.push("/")
+     clearCart();
   }
   const buyNow = (itemCode, qty, price, name, size, variant) => {
     let newCart ={}
@@ -123,6 +124,7 @@ export default function App({ Component, pageProps }) {
         saveCart={saveCart}
         subTotal={subTotal}
         buyNow={buyNow}
+        user={user}
       />
       <Footer />
     </>

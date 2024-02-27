@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { FaShoppingCart, FaShoppingBag } from "react-icons/fa";
 import { LiaGratipay } from "react-icons/lia";
+import { Toaster, toast } from "react-hot-toast";
 import {
   IoCloseCircleSharp,
   IoAddCircle,
@@ -10,8 +11,16 @@ import {
 import Head from "next/head";
 import Script from "next/script";
 
-function Checkout({ cart, addToCart, removeFromCart, subTotal, clearCart }) {
+function Checkout({
+  cart,
+  addToCart,
+  removeFromCart,
+  subTotal,
+  clearCart,
+}) {
   const [disabled, setDisabled] = useState(true);
+  const [pinCodes, setPinCodes] = useState({});
+  const [user, setUser] = useState({});
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -21,10 +30,7 @@ function Checkout({ cart, addToCart, removeFromCart, subTotal, clearCart }) {
     state: "",
     city: "",
   });
-  const handleChange = (name, value) => {
-    let obj = { [name]: value };
-    setFormData({ ...formData, ...obj });
-
+  useEffect(() => {
     if (
       formData.address.length > 3 &&
       formData.name.length > 3 &&
@@ -33,15 +39,66 @@ function Checkout({ cart, addToCart, removeFromCart, subTotal, clearCart }) {
       formData.phone.length > 3
     ) {
       setDisabled(false);
-    }else{
+    } else {
       setDisabled(true);
+    }
+  }, [formData.address,formData.name,formData.email,formData.phone,formData.pincode])
 
+  useEffect(() => {
+    const user=JSON.parse(localStorage.getItem("myuser"));
+    if(user){
+      setUser(user)
+      setFormData(prev=>({...prev,email:user.email}))
+    }
+  }, []);
+
+  const handleChange = (name, value) => {
+    let obj = { [name]: value };
+    setFormData({ ...formData, ...obj });
+
+
+    if (name == "pincode") {
+      if (value.length == 6) {
+        fetch(`${process.env.NEXT_PUBLIC_HOST_URL}/api/pincode`)
+          .then((response) => response.json())
+          .then((data) => setPinCodes(data))
+          .catch((error) => console.error(error));
+
+        if (Object.keys(pinCodes).includes(value)) {
+          setFormData((prevState) => ({
+            ...prevState,
+            state: pinCodes[value][1],
+            city: pinCodes[value][0],
+          }));
+        } else {
+          setFormData((prevState) => ({
+            ...prevState,
+            state: "",
+            city: "",
+          }));
+        }
+      } else {
+        setFormData((prevState) => ({
+          ...prevState,
+          state: "",
+          city: "",
+        }));
+      }
     }
   };
   const initiatePayment = async () => {
     let amount;
     let oid = Math.floor(Math.random() * Date.now());
-    const data = { cart, subTotal, oid, email: formData.email, name:formData.name, pincode:formData.pincode, address:formData.address, phone:formData.phone };
+    const data = {
+      cart,
+      subTotal,
+      oid,
+      email: formData.email,
+      name: formData.name,
+      pincode: formData.pincode,
+      address: formData.address,
+      phone: formData.phone,
+    };
     const a = await fetch(
       `${process.env.NEXT_PUBLIC_HOST_URL}/api/pretransaction`,
       {
@@ -52,35 +109,42 @@ function Checkout({ cart, addToCart, removeFromCart, subTotal, clearCart }) {
         body: JSON.stringify(data),
       }
     );
-    const txnToken = await a.json();
-    var config = {
-      root: "",
-      flow: "DEFAULT",
-      data: {
-        orderId: oid,
-        token: "",
-        tokenType: txnToken,
-        amount: subTotal,
-      },
-      handler: {
-        notifyMerchant: function (eventName, data) {
-          console.log("notifyMerchant handler function called");
-          console.log("eventName => ", eventName);
-          console.log("data => ", data);
+    const txnRes = await a.json();
+    if (txnRes.success == true) {
+      const txnToken = txnRes.txnToken;
+      var config = {
+        root: "",
+        flow: "DEFAULT",
+        data: {
+          orderId: oid,
+          token: "",
+          tokenType: txnToken,
+          amount: subTotal,
         },
-      },
-    };
-    window.Paytm.CheckoutJS.init(config)
-      .then(function onSuccess() {
-        // after successfully updating configuration, invoke JS Checkout
-        window.Paytm.CheckoutJS.invoke();
-      })
-      .catch(function onError(error) {
-        console.log("error => ", error);
-      });
+        handler: {
+          notifyMerchant: function (eventName, data) {
+            console.log("notifyMerchant handler function called");
+            console.log("eventName => ", eventName);
+            console.log("data => ", data);
+          },
+        },
+      };
+      window.Paytm.CheckoutJS.init(config)
+        .then(function onSuccess() {
+          // after successfully updating configuration, invoke JS Checkout
+          window.Paytm.CheckoutJS.invoke();
+        })
+        .catch(function onError(error) {
+          console.log("error => ", error);
+        });
+    } else {
+      clearCart();
+      toast.error(txnRes.error);
+    }
   };
   return (
     <div className="container sm:m-auto px-2">
+      <Toaster position="top-center" reverseOrder={false} />
       <Head>
         <meta
           name="viewport"
@@ -113,14 +177,25 @@ function Checkout({ cart, addToCart, removeFromCart, subTotal, clearCart }) {
           <label htmlFor="email" className="leading-7 text-sm text-gray-600">
             Email
           </label>
-          <input
-            type="email"
-            id="email"
-            name="email"
-            className="w-full bg-white rounded border border-gray-300 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out"
-            onChange={(e) => handleChange(e.target.name, e.target.value)}
-            value={formData.email}
-          />
+          {user && user.token ? (
+            <input
+              type="email"
+              id="email"
+              name="email"
+              className="w-full bg-white rounded border border-gray-300 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out read-only:bg-slate-100"
+              readOnly={true}
+              value={user.email}
+            />
+          ) : (
+            <input
+              type="email"
+              id="email"
+              name="email"
+              className="w-full bg-white rounded border border-gray-300 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out"
+              onChange={(e) => handleChange(e.target.name, e.target.value)}
+              value={formData.email}
+            />
+          )}
         </div>
       </div>
       <div className="mx-4">
@@ -148,21 +223,21 @@ function Checkout({ cart, addToCart, removeFromCart, subTotal, clearCart }) {
             className="w-full bg-white rounded border border-gray-300 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out"
             onChange={(e) => handleChange(e.target.name, e.target.value)}
             value={formData.phone}
+            placeholder="Enter your 10-digit phone number"
           />
         </div>
         <div className="w-1/2 mb-4 mx-4">
-        <label htmlFor="pincode" className="leading-7 text-sm text-gray-600">
+          <label htmlFor="pincode" className="leading-7 text-sm text-gray-600">
             Pincode
           </label>
           <input
-            type="phone"
+            type="text"
             id="pincode"
             name="pincode"
             className="w-full bg-white rounded border border-gray-300 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out"
             onChange={(e) => handleChange(e.target.name, e.target.value)}
             value={formData.pincode}
           />
-
         </div>
       </div>
       <div className="mx-auto flex my-2">
@@ -174,21 +249,21 @@ function Checkout({ cart, addToCart, removeFromCart, subTotal, clearCart }) {
             type="text"
             id="state"
             name="state"
-            className="w-full bg-white rounded border border-gray-300 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out"
+            className="w-full bg-white rounded border border-gray-300 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out read-only:bg-slate-100"
             onChange={(e) => handleChange(e.target.name, e.target.value)}
             value={formData.state}
             readOnly={true}
           />
         </div>
         <div className="w-1/2 mb-4 mx-4">
-        <label htmlFor="city" className="leading-7 text-sm text-gray-600">
-            City
+          <label htmlFor="city" className="leading-7 text-sm text-gray-600">
+            District
           </label>
           <input
             type="text"
             id="city"
             name="city"
-            className="w-full bg-white rounded border border-gray-300 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out"
+            className="w-full bg-white rounded border border-gray-300 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out read-only:bg-slate-100"
             onChange={(e) => handleChange(e.target.name, e.target.value)}
             value={formData.city}
             readOnly={true}

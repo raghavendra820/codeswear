@@ -7,8 +7,6 @@ import Product from "@/models/Product";
 
 const tshirts = ({ products }) => {
 
-
-
   return (
     <div>
       <section className="text-gray-600 body-font ">
@@ -79,9 +77,17 @@ export async function getServerSideProps() {
       }
     }else{
       tshirts[item.title]=JSON.parse(JSON.stringify(item));
-      tshirts[item.title].color=[item.color]
-      tshirts[item.title].size=[item.size]
+      if(item.availableQty>0){
+        tshirts[item.title].color=[item.color]
+        tshirts[item.title].size=[item.size]
+      }
+      else{
+        tshirts[item.title].color=[]
+        tshirts[item.title].size=[]
+
+      }
     }
+
 
   }
   return { props: { products: JSON.parse(JSON.stringify(tshirts)) } };

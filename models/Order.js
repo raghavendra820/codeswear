@@ -10,6 +10,7 @@ const OrderSchema = new Schema(
     address: { type: String, required: true },
     amount: { type: String, required: true },
     status: { type: String, required: true, default: "Initiated" },
+    deliverystatus: { type: String, required: true, default: "unshipped" },
   },
   { timestamps: true }
 );
