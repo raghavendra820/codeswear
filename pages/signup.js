@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { Toaster, toast } from "react-hot-toast";
+import { useRouter } from "next/router";
+
 const Signup = () => {
   const [formData, setFormData] = useState({
     email: "",

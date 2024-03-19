@@ -7,8 +7,6 @@ async function handler(req, res) {
   if (req.method === "POST") {
     let user = await User.findOne({ email: req.body.email });
     var bytes = CryptoJS.AES.decrypt(user.password, process.env.AES_SECRET)
-    console.log(user.email);
-    console.log(req.body.email);
     if (user) {
       if (
         user.email == req.body.email &&

@@ -3,13 +3,15 @@ const PaytmChecksum = require("paytmchecksum");
 import Order from "@/models/Order";
 import connectDb from "@/middleware/mongoose";
 import Product from "@/models/Product";
+import pincode from "../../pincode.json";
 
 /*
- * import checksum generation utility
- * You can get this utility from https://developer.paytm.com/docs/checksum/
- */
+* import checksum generation utility
+* You can get this utility from https://developer.paytm.com/docs/checksum/
+*/
 
 async function handler(req, res) {
+  if (req.method === "POST") {
   if(req.body.subTotal==0){
     res.status(400).json({ success:false,error: "Please build your cart and try again!!" });
     return;
@@ -23,38 +25,46 @@ async function handler(req, res) {
     if (product.price != cart[item].price) {
       console.log(product.price)
       console.log(cart[item].price)
-      res.status(400).json({ success:false,error: "The price of some items in your cart has changed.Please try again!!" });
+      res.status(400).json({ success:false,error: "The price of some items in your cart has changed.Please try again!!",cartClear:true });
       return;
     }
     //To check if items are out of stock
     if(product.availableQty < cart[item].qty){
-      res.status(400).json({ success:false,error: "Some of the items in your cart are out of stock!" });
+      res.status(400).json({ success:false,error: "Some of the items in your cart are out of stock!", cartClear:true });
       return;
     }
   }
   if(req.body.phone.length != 10 && Number.isInteger(Number(req.body.phone))){
-    res.status(400).json({ success:false,error: "Please enter your 10 digit valid number" });
+    res.status(400).json({ success:false,error: "Please enter your 10 digit valid number", cartClear:false });
     return;
   }
   if(req.body.pincode.length != 6 && Number.isInteger(Number(req.body.phone))){
-    res.status(400).json({ success:false,error: "Please enter your 6 digit valid number" });
+    res.status(400).json({ success:false,error: "Please enter your 6 digit valid number", cartClear:false });
     return;
   }
 
   if (sumTotal != req.body.subTotal) {
-    res.status(400).json({ success:false,error: "The price of some items in your cart has changed.Please try again!!" });
+    res.status(400).json({ success:false,error: "The price of some items in your cart has changed.Please try again!!", cartClear:true });
+    return;
+  }
+  if(!Object.keys(pincode).includes(req.body.pincode)){
+    res.status(400).json({ success:false,error: "We do not deliver to his pincode yet!!", cartClear:false });
     return;
   }
 
   const order = new Order({
+    name: req.body.name,
     email: req.body.email,
     orderId: req.body.oid,
     address: req.body.address,
+    pincode: req.body.pincode,
+    city: req.body.city,
+    state: req.body.state,
     amount: req.body.subTotal,
     products: req.body.cart,
+    phone: req.body.phone,
   });
   await order.save();
-  if (req.method === "POST") {
     var paytmParams = {};
 
     paytmParams.body = {
@@ -110,6 +120,7 @@ async function handler(req, res) {
             console.log("Response: ", response);
             let ress=JSON.parse(response).body
             ress.success=true;
+            ress.clearCart=false;
             resolve(res);
           });
         });

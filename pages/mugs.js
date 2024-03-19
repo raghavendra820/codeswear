@@ -6,8 +6,8 @@ import Product from "@/models/Product";
 
 const mugs = ({ products }) => {
   return (
-    <div>
-      <section className="text-gray-600 body-font ">
+    <div className="flex min-h-screen flex-col justify-center px-4  pb-12 sm:px-6 lg:px-8">
+      <section className="text-gray-600 body-font mx-5">
         <div className="container px-5 py-24 mx-auto">
           {Object.keys(products).length ===0 && <div className="text-center font-semibold">Item you are looking for is currently out of stock! Stay Tuned....</div>}
           <div className="flex flex-wrap -m-4 justify-center">

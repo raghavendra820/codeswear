@@ -18,7 +18,7 @@ const Navbar = ({
   subTotal,
   clearCart,
   user,
-  key,
+  rerender,
   logout,
 }) => {
   const [dropdown, setDropdown] = useState(false);
@@ -26,13 +26,18 @@ const Navbar = ({
   const ref = useRef(null);
   const router = useRouter();
 
+
   useEffect(() => {
-    Object.keys(cart).length === 0 && setSideBar(true)
+    Object.keys(cart).length === 0 && setSideBar(true);
     let exempted=["/checkout","/orders","/order","myaccount"]
     if(exempted.includes(router.pathname)){
       setSideBar(false)
     }
   }, []);
+
+  // useEffect(() => {
+  //   setSideBar(!sideBar);
+  // }, [rerender])
 
   const toggleCart = () => {
     setSideBar(!sideBar);
@@ -71,7 +76,8 @@ const Navbar = ({
                 </span>
               )}
       <div className={`flex flex-col md:flex-row md:justify-start justify-center items-center py-2 shadow-md z-30 sticky top-0 bg-white
-      ${!sideBar&& "overflow-hidden"}`}>
+      ${!sideBar&& "overflow-hidden"}`} >
+
         <div className="logo md:mx-5 mr-auto">
           <Link href={"/"}>
             <Image src={"/logo.webp"} width={200} height={40} alt="jjh"></Image>
@@ -124,6 +130,7 @@ const Navbar = ({
           </div>
         </div>
         <div
+          key={rerender}
           ref={ref}
           className={`sideCart absolute  top-0 bg-pink-200 px-8 py-10  ${
             sideBar

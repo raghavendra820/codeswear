@@ -12,12 +12,9 @@ export default function App({ Component, pageProps }) {
   const [key, setKey] = useState(0);
   const [progress, setProgress] = useState(0)
 
-
-
-
-
   const router = useRouter();
   useEffect(() => {
+    const user=JSON.parse(localStorage.getItem("myuser"));
     router.events.on('routeChangeStart', ()=>{
       setProgress(50);
     })//On to subscribe to a event
@@ -26,11 +23,11 @@ export default function App({ Component, pageProps }) {
       setProgress(100);
     })
 
-    const myuser=JSON.parse(localStorage.getItem("myuser"))
-    if(myuser){
-      setUser({value:myuser.token, email: myuser.email})
+    if(user){
+      setUser({value:user.token, email: user.email})
       setKey(Math.random())
     }
+
     try {
       if (localStorage.getItem("cart")) {
         setCart(JSON.parse(localStorage.getItem("cart")));
@@ -44,7 +41,7 @@ export default function App({ Component, pageProps }) {
 
   const logout= ()=>{
     localStorage.removeItem("myuser")
-    // setKey(Math.random())
+    setKey(Math.random())
      setUser({ value: null })
      router.push("/")
      clearCart();
@@ -81,6 +78,9 @@ export default function App({ Component, pageProps }) {
   };
 
   const addToCart = (itemCode, qty, price, name, size, variant) => {
+    if(Object.keys(cart).length == 0){
+      setKey(Math.random());
+    }
     let newCart = cart;
     if (itemCode in newCart) {
       newCart[itemCode].qty += qty;
@@ -104,7 +104,7 @@ export default function App({ Component, pageProps }) {
         onLoaderFinished={() => setProgress(0)}
         waitingTime={300}
       />
-      <Navbar
+      {<Navbar
         cart={cart}
         clearCart={clearCart}
         addToCart={addToCart}
@@ -114,7 +114,8 @@ export default function App({ Component, pageProps }) {
         buyNow={buyNow}
         user={user}
         logout={logout}
-      />
+        rerender={key}
+      />}
       <Component
         {...pageProps}
         cart={cart}

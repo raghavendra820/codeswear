@@ -13,17 +13,15 @@ const Post = ({
   product,
   variants,
   buyNow,
-  error
+  error,
 }) => {
   const router = useRouter();
   const [pin, setPin] = useState("");
   const [pinCodes, setPinCodes] = useState([]);
   const [available, setAvailable] = useState();
-  console.log(error)
 
   const { slug } = router.query;
   useEffect(() => {
-    console.log(product)
     // setColor(product.color);
     // setSize(product.size);
     fetch(`${process.env.NEXT_PUBLIC_HOST_URL}/api/pincode`)
@@ -33,13 +31,11 @@ const Post = ({
   }, []);
 
   useEffect(() => {
-    if(error!=404){
+    if (error != 404) {
       setColor(product.color);
       setSize(product.size);
-
     }
-  }, [router.query])
-
+  }, [router.query]);
 
   const checkService = () => {
     if (Object.keys(pinCodes).includes(pin)) {
@@ -59,11 +55,11 @@ const Post = ({
 
   const [color, setColor] = useState();
   const [size, setSize] = useState();
-  if (error==404) {
-    return <Error statusCode={404} />
+  if (error == 404) {
+    return <Error statusCode={404} />;
   }
   return (
-    <div>
+    <div className="flex min-h-screen flex-col justify-center px-4 pb-20 sm:px-6 lg:px-8 ">
       <section className="text-gray-600 body-font overflow-hidden">
         <Toaster position="top-center" reverseOrder={false} />
         <div className="container px-5 py-16 mx-auto">
@@ -256,9 +252,10 @@ const Post = ({
                       {color && Object.keys(variants[color]).includes("XL") && (
                         <option value={"XL"}>XL</option>
                       )}
-                      {color && Object.keys(variants[color]).includes("XXL") && (
-                        <option value={"XXL"}>XXL</option>
-                      )}
+                      {color &&
+                        Object.keys(variants[color]).includes("XXL") && (
+                          <option value={"XXL"}>XXL</option>
+                        )}
                     </select>
                     <span className="absolute right-0 top-0 h-full w-10 text-center text-gray-600 pointer-events-none flex items-center justify-center">
                       <svg
@@ -280,13 +277,15 @@ const Post = ({
                 <span className="title-font font-medium text-2xl text-gray-900">
                   ₹{product.price}
                 </span>
-                {product.availableQty<=0&&<span className="title-font font-medium text-2xl text-gray-900">
-                  Out of stock :)
-                </span>}
+                {product.availableQty <= 0 && (
+                  <span className="title-font font-medium text-2xl text-gray-900">
+                    Out of stock :)
+                  </span>
+                )}
                 <button
                   className="flex ml-3 text-white bg-pink-500 border-0 py-2 px-6 focus:outline-none hover:bg-pink-600 rounded disabled:bg-pink-300"
-                  disabled={product.availableQty<=0}
-                  onClick={() =>
+                  disabled={product.availableQty <= 0}
+                  onClick={() => {
                     addToCart(
                       slug,
                       1,
@@ -294,14 +293,19 @@ const Post = ({
                       product.title,
                       product.size,
                       product.color
-                    )
-                  }
+                    );
+                    cart[product.slug].qty == 1
+                      ? toast.success("Item Added to Cart")
+                      : toast.success(
+                          "Quantity of item in the cart has been increased by 1"
+                        );
+                  }}
                 >
                   Add to Cart
                 </button>
                 <button
                   className="flex ml-3 text-white bg-pink-500 border-0 py-2 px-6 focus:outline-none hover:bg-pink-600 rounded disabled:bg-pink-300"
-                  disabled={product.availableQty<=0}
+                  disabled={product.availableQty <= 0}
                   onClick={() =>
                     buyNow(
                       slug,
@@ -366,16 +370,18 @@ export async function getServerSideProps(context) {
     await mongoose.connect(process.env.MONGO_URI);
   }
   let product = await Product.findOne({ slug: context.query.slug });
-  if(product==null){
-
+  if (product == null) {
     return {
       props: {
-        error:404
+        error: 404,
       },
     };
   }
   let colorSizeSlug = {}; //{red:{xl:{slug:'wear-the-code'}}}
-  let variants = await Product.find({ title: product.title, category: product.category });
+  let variants = await Product.find({
+    title: product.title,
+    category: product.category,
+  });
   for (let item of variants) {
     if (Object.keys(colorSizeSlug).includes(item.color)) {
       colorSizeSlug[item.color][item.size] = { slug: item.slug };
@@ -388,7 +394,7 @@ export async function getServerSideProps(context) {
     props: {
       product: JSON.parse(JSON.stringify(product)),
       variants: JSON.parse(JSON.stringify(colorSizeSlug)),
-      error:200
+      error: 200,
     },
   };
 }

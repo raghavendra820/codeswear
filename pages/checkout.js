@@ -10,17 +10,13 @@ import {
 } from "react-icons/io5";
 import Head from "next/head";
 import Script from "next/script";
+import { Router, useRouter } from "next/router";
 
-function Checkout({
-  cart,
-  addToCart,
-  removeFromCart,
-  subTotal,
-  clearCart,
-}) {
+function Checkout({ cart, addToCart, removeFromCart, subTotal, clearCart }) {
   const [disabled, setDisabled] = useState(true);
   const [pinCodes, setPinCodes] = useState({});
   const [user, setUser] = useState({});
+  const router = useRouter();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -42,48 +38,80 @@ function Checkout({
     } else {
       setDisabled(true);
     }
-  }, [formData.address,formData.name,formData.email,formData.phone,formData.pincode])
+  }, [
+    formData.address,
+    formData.name,
+    formData.email,
+    formData.phone,
+    formData.pincode,
+  ]);
 
   useEffect(() => {
-    const user=JSON.parse(localStorage.getItem("myuser"));
-    if(user){
-      setUser(user)
-      setFormData(prev=>({...prev,email:user.email}))
+    const user = JSON.parse(localStorage.getItem("myuser"));
+    if (!user) {
+      router.push("/");
+    }
+    if (user && user.token) {
+      setUser(user);
+      setFormData((prev) => ({ ...prev, email: user.email }));
+      fetchData(user.token);
     }
   }, []);
+
+  const fetchData = async (token) => {
+    const data = { token: token };
+    const a = await fetch(`${process.env.NEXT_PUBLIC_HOST_URL}/api/getuser`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
+    const res = await a.json();
+    setFormData((prevState) => ({
+      ...prevState,
+      pincode: res.pincode,
+      name: res.name,
+      email: res.email,
+      address: res.address,
+      phone: res.phone,
+    }));
+    getPincode(res.pincode);
+  };
+
+  const getPincode = async (pincode) => {
+    const data = await fetch(`${process.env.NEXT_PUBLIC_HOST_URL}/api/pincode`);
+    const res = await data.json();
+    setPinCodes(res);
+
+    if (Object.keys(res).includes(pincode)) {
+      setFormData((prevState) => ({
+        ...prevState,
+        state: res[pincode][1],
+        city: res[pincode][0],
+      }));
+    } else {
+      setFormData((prevState) => ({
+        ...prevState,
+        state: "",
+        city: "",
+      }));
+    }
+  };
 
   const handleChange = (name, value) => {
     let obj = { [name]: value };
     setFormData({ ...formData, ...obj });
-
-
     if (name == "pincode") {
       if (value.length == 6) {
-        fetch(`${process.env.NEXT_PUBLIC_HOST_URL}/api/pincode`)
-          .then((response) => response.json())
-          .then((data) => setPinCodes(data))
-          .catch((error) => console.error(error));
-
-        if (Object.keys(pinCodes).includes(value)) {
-          setFormData((prevState) => ({
-            ...prevState,
-            state: pinCodes[value][1],
-            city: pinCodes[value][0],
-          }));
-        } else {
-          setFormData((prevState) => ({
-            ...prevState,
-            state: "",
-            city: "",
-          }));
-        }
-      } else {
-        setFormData((prevState) => ({
-          ...prevState,
-          state: "",
-          city: "",
-        }));
+        getPincode(value);
       }
+    } else {
+      setFormData((prevState) => ({
+        ...prevState,
+        state: "",
+        city: "",
+      }));
     }
   };
   const initiatePayment = async () => {
@@ -138,7 +166,10 @@ function Checkout({
           console.log("error => ", error);
         });
     } else {
-      clearCart();
+      if (txnRes.cartClear == true) {
+        clearCart();
+      }
+
       toast.error(txnRes.error);
     }
   };

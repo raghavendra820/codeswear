@@ -20,7 +20,7 @@ const handler= async(req,res)=>{
     }
 
   }
-  res.status(400).json({tshirts})
+  res.status(200).json({tshirts})
 }
 
 export default connectDb(handler);

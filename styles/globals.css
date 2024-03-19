@@ -9,5 +9,11 @@ img{
 /* body{
   overflow-x: hidden;
 } */
+.gradient-text {
+  background: linear-gradient(to right, #ff4d8c, #ff66a1);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
 
 

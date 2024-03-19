@@ -32,7 +32,7 @@ async function handler(req, res) {
     //Update status into orders table after checking transaction status
     order = await Order.findOneAndUpdate(
       { orderId: req.body.ORDERID },
-      { status: "Paid", paymentInfo: JSON.stringify(req.body) }
+      { status: "Paid", paymentInfo: JSON.stringify(req.body), transactionid:req.body.TXTID }
     );
     let products = order.products;
     for (let slug in products) {

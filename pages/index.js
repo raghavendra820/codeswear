@@ -1,16 +1,17 @@
 import Image from "next/image";
 import { Inter } from "next/font/google";
+import Courosel from "@/components/Courosel"
 
 const inter = Inter({ subsets: ["latin"] });
 
 export default function Home() {
   return (
     <main>
-      <img src="./11029148.jpg" alt="img" className="md:p-10"/>
+      <Courosel/>
       <section className="text-gray-600 body-font">
-        <div className="container px-5 py-24 mx-auto">
+        <div className="container px-5  mx-auto">
           <div className="flex flex-wrap w-full mb-20 flex-col items-center text-center">
-            <h1 className="sm:text-3xl text-2xl font-medium title-font mb-2 text-gray-900">
+            <h1 className="sm:text-3xl text-2xl font-medium title-font mb-2 text-gray-900 ">
               Wear the code with CodesWear.com
             </h1>
             <p className="lg:w-1/2 w-full leading-relaxed text-gray-500">
@@ -35,7 +36,7 @@ export default function Home() {
                   </svg>
                 </div>
                 <h2 className="text-lg text-gray-900 font-medium title-font mb-2">
-                  Shooting Stars
+                Trendsetting Collections
                 </h2>
                 <p className="leading-relaxed text-base">
                   Fingerstache flexitarian street art 8-bit waist co, subway
@@ -61,7 +62,7 @@ export default function Home() {
                   </svg>
                 </div>
                 <h2 className="text-lg text-gray-900 font-medium title-font mb-2">
-                  The Catalyzer
+                Diverse Range
                 </h2>
                 <p className="leading-relaxed text-base">
                   Fingerstache flexitarian street art 8-bit waist co, subway
@@ -86,7 +87,7 @@ export default function Home() {
                   </svg>
                 </div>
                 <h2 className="text-lg text-gray-900 font-medium title-font mb-2">
-                  Neptune
+                Premium Quality
                 </h2>
                 <p className="leading-relaxed text-base">
                   Fingerstache flexitarian street art 8-bit waist co, subway
@@ -110,7 +111,7 @@ export default function Home() {
                   </svg>
                 </div>
                 <h2 className="text-lg text-gray-900 font-medium title-font mb-2">
-                  Melanchole
+                Expressive Style
                 </h2>
                 <p className="leading-relaxed text-base">
                   Fingerstache flexitarian street art 8-bit waist co, subway
@@ -134,7 +135,7 @@ export default function Home() {
                   </svg>
                 </div>
                 <h2 className="text-lg text-gray-900 font-medium title-font mb-2">
-                  Bunker
+                Seamless Shopping Experience
                 </h2>
                 <p className="leading-relaxed text-base">
                   Fingerstache flexitarian street art 8-bit waist co, subway
@@ -158,7 +159,7 @@ export default function Home() {
                   </svg>
                 </div>
                 <h2 className="text-lg text-gray-900 font-medium title-font mb-2">
-                  Ramona Falls
+                Easy Returns and Exchanges
                 </h2>
                 <p className="leading-relaxed text-base">
                   Fingerstache flexitarian street art 8-bit waist co, subway
@@ -168,7 +169,7 @@ export default function Home() {
             </div>
           </div>
           <button className="flex mx-auto mt-16 text-white bg-pink-500 border-0 py-2 px-8 focus:outline-none hover:bg-pink-600 rounded text-lg">
-            Button
+            Go Shopping
           </button>
         </div>
       </section>
